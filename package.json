@@ -2,7 +2,7 @@
   "name": "bidonsite",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://n0xlite.github.io",
+  "homepage": "https://bidonsite.xyz",
   "dependencies": {
     "-": "^0.0.1",
     "@testing-library/jest-dom": "^5.16.4",
