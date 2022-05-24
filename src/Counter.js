@@ -1,7 +1,7 @@
 export default function Counter(props) {
     return (
         <div className="counter">
-            <h3 className="counter--title">{props.name}</h3>
+            <h2 className="counter--title">{props.name}</h2>
             <div className="counter--buttons">
                 <button className="counter--minus" onClick={props.handleSub}>-</button>
                 <span className="counter--count">{props.count}</span>
