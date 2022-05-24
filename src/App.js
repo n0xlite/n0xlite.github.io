@@ -1,5 +1,6 @@
 import {useState} from 'react'
 import {dataSheet} from './dataSheet'
+import Navbar from './Navbar'
 import Counter from './Counter'
 import Total from './Total'
 
@@ -55,6 +56,7 @@ function App() {
 
   return (
     <div className="App">
+      <Navbar />
       <div className="counters">
         {counters}
       </div>

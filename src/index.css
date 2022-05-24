@@ -4,4 +4,135 @@
 
 body {
     margin: 0;
+    color: #7878AB;
+
+    background-color: #F5F5FA;
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+}
+
+.navbar {
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    height: 4em;
+    color: white;
+    background-color: #7878AB;
+    line-height: 2em;
+    text-align: center;
+}
+
+.counter, .total{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1em;
+    margin-bottom: 2em;
+}
+
+.counter button {
+    font-weight: bold;
+    font-size: 20px;
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+}
+
+.counter--buttons {
+    display: flex;
+    align-items: center;
+    gap: 1em;
+}
+
+.counter--count {
+    text-align: center;
+    line-height: 4.3em;
+    width: 4em;
+    height: 4em;
+    color: #7878AB;
+    display: inline-block;
+    background: #F5F5FA;
+    /* Inner shadow 2 */
+
+    font-weight: bold;
+    box-shadow: inset -2px -2px 4px rgba(255, 255, 255, 0.5), inset 2px 2px 4px rgba(170, 170, 204, 0.25), inset 5px 5px 10px rgba(170, 170, 204, 0.5), inset -5px -5px 10px #FFFFFF;
+    border-radius: 4em;
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+}
+
+.counter--minus {
+    width: 3em;
+    height: 3em;
+    border-radius: 3em;
+    color: #7878AB;
+    background-color: #F5F5FA;
+    border: none;
+    box-shadow: -5px -5px 10px rgba(255, 255, 255, 0.5), 5px 5px 10px rgba(170, 170, 204, 0.25), 10px 10px 20px rgba(170, 170, 204, 0.5), -10px -10px 20px #FFFFFF;
+}
+.counter--plus {
+    width: 3em;
+    height: 3em;
+    border-radius: 3em;
+    color: #7878AB;
+    background-color: #F5F5FA;
+    border: none;
+    box-shadow: -5px -5px 10px rgba(255, 255, 255, 0.5), 5px 5px 10px rgba(170, 170, 204, 0.25), 10px 10px 20px rgba(170, 170, 204, 0.5), -10px -10px 20px #FFFFFF;
+}
+.counter--reset {
+    width: 6em;
+    height: 3em;
+    border-radius: 3em;
+    color: #7878AB;
+    background-color: #F5F5FA;
+    border: none;
+    box-shadow: -5px -5px 10px rgba(255, 255, 255, 0.5), 5px 5px 10px rgba(170, 170, 204, 0.25), 10px 10px 20px rgba(170, 170, 204, 0.5), -10px -10px 20px #FFFFFF;
+}
+.counter--minus:active {
+    width: 3em;
+    height: 3em;
+    border-radius: 3em;
+    color: #7878AB;
+    background-color: #E5E5F0;
+    border: none;
+    box-shadow: 5px 5px 10px rgba(170, 170, 204, 0.5), -5px -5px 10px #FFFFFF;
+}
+.counter--plus:active {
+    width: 3em;
+    height: 3em;
+    border-radius: 3em;
+    color: #7878AB;
+    background-color: #E5E5F0;
+    border: none;
+    box-shadow: 5px 5px 10px rgba(170, 170, 204, 0.5), -5px -5px 10px #FFFFFF;
+}
+.counter--reset:active {
+    width: 6em;
+    height: 3em;
+    border-radius: 3em;
+    color: #7878AB;
+    background-color: #E5E5F0;
+    border: none;
+    box-shadow: 5px 5px 10px rgba(170, 170, 204, 0.5), -5px -5px 10px #FFFFFF;    
+}
+
+.total--output {
+    text-align: center;
+    line-height: 3.2em;
+    width: 8em;
+    height: 3em;
+    color: #7878AB;
+    display: inline-block;
+    background: #F5F5FA;
+    /* Inner shadow 2 */
+
+    font-weight: bold;
+    box-shadow: inset -2px -2px 4px rgba(255, 255, 255, 0.5), inset 2px 2px 4px rgba(170, 170, 204, 0.25), inset 5px 5px 10px rgba(170, 170, 204, 0.5), inset -5px -5px 10px #FFFFFF;
+    border-radius: 4em;
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+}
+
+.total {
+    margin-top: 2em;
+}
+
+.total--text {
+    margin-bottom: .1em;
 }
