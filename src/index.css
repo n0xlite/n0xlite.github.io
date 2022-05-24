@@ -14,11 +14,9 @@ body {
     font-weight: bold;
     display: flex;
     justify-content: center;
-    height: 4em;
+    align-content: center;
     color: white;
     background-color: #7878AB;
-    line-height: 2em;
-    text-align: center;
 }
 
 .counter, .total{
