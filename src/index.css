@@ -12,9 +12,10 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    color: white;
-    background-color: slategrey;
     margin-bottom: 2rem;
+
+    color: white;
+    background-color: slategray;
 }
 
 .navbar--title {
@@ -34,30 +35,34 @@ body {
 
 .counter--buttons {
     display: flex;
-    margin-bottom: 2rem;
     gap: 1rem;
+    margin-bottom: 2rem;
 }
 
 .counter--minus, .counter--plus {
     width: 3rem;
     height: 3rem;
     border-radius: 3rem;
-    font-size: 16px;
-    color: white;
-    font-family: Arial, Helvetica, sans-serif;
-    background-color: slategray;
     border: none;
+
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 16px;
+
+    color: white;
+    background-color: slategray;
 }
 
 .counter--reset {
     width: 6rem;
     height: 3rem;
     border-radius: 3rem;
-    font-family: Arial, Helvetica, sans-serif;
+    border: none;
+
     font-size: 16px;
+    font-family: Arial, Helvetica, sans-serif;
+
     color: white;
     background-color: slategray;
-    border: none;
 }
 
 .counter--count {
@@ -65,9 +70,10 @@ body {
     width: 3rem;
     height: 3rem;
     border-radius: 3rem;
-    line-height: 3rem;
+    
     text-align: center;
     font-size: 18px;
+    line-height: 3rem;
 }
 
 .total {
@@ -83,12 +89,13 @@ body {
 }
 
 .total--output {
-    margin-bottom: 1rem;
     display: inline-block;
     width: 6rem;
     height: 3rem;
     border-radius: 3rem;
-    line-height: 3rem;
+    margin-bottom: 1rem;
+
     text-align: center;
     font-size: 18px;
+    line-height: 3rem;
 }
