@@ -57,7 +57,7 @@ function App() {
   return (
     <div className="App">
       <Navbar />
-        {counters}
+      {counters}
       <Total windowPrice={windowSum} screenPrice={screenSum}/>
     </div>
   )

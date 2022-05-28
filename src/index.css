@@ -1,25 +1,25 @@
+@import url('https://fonts.googleapis.com/css2?family=Rubik&display=swap');
+
+
 * {
     box-sizing: border-box;
-    /* border: 1px solid red; */
+    font-family: 'Rubik', sans-serif;
+    /* border: solid 1px red; */
 }
 
 body {
     margin: 0;
-    font-family: Arial, Helvetica, sans-serif;
+    color: #7878AB;
+    background-color: #F5F5FA;
 }
 
 .navbar {
+    margin: 0;
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-bottom: 2rem;
-
-    color: white;
-    background-color: slategray;
-}
-
-.navbar--title {
-    margin: 1rem;
+    color: #FFFFFF;
+    background-color: #7878AB;
 }
 
 .counter {
@@ -27,53 +27,57 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    margin: 1rem 0;
 }
 
 .counter--title {
-    margin: 1rem;
+    margin: 1rem 0;
 }
 
 .counter--buttons {
     display: flex;
+    width: 100%;
+    justify-content: center;
     gap: 1rem;
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
 }
 
-.counter--minus, .counter--plus {
-    width: 3rem;
+.button {
+    min-width: 3rem;
+    max-width: 6rem;
     height: 3rem;
-    border-radius: 3rem;
     border: none;
-
-    font-family: Arial, Helvetica, sans-serif;
-    font-size: 16px;
-
-    color: white;
-    background-color: slategray;
+    border-radius: 3rem;
+    font-size: 18px;
+    color: #7878AB;
+    background-color: #F5F5FA;
+    box-shadow: -5px -5px 10px rgba(255, 255, 255, 0.5), 5px 5px 10px rgba(170, 170, 204, 0.25), 10px 10px 20px rgba(170, 170, 204, 0.5), -10px -10px 20px #FFFFFF;
 }
 
-.counter--reset {
-    width: 6rem;
-    height: 3rem;
-    border-radius: 3rem;
-    border: none;
+.button:active {
+    color: #F5F5FA;
+    background-color: #7878AB;
+    box-shadow: -5px -5px 10px rgba(255, 255, 255, 0.5), 5px 5px 10px rgba(170, 170, 204, 0.25), 10px 10px 20px rgba(170, 170, 204, 0.5), -10px -10px 20px #FFFFFF;
 
-    font-size: 16px;
-    font-family: Arial, Helvetica, sans-serif;
+}
 
-    color: white;
-    background-color: slategray;
+.button--reset {
+    width: 100%;
+}
+
+.button--minus, .button--plus {
+    width: 0%;
 }
 
 .counter--count {
     display: inline-block;
-    width: 3rem;
+    min-width: 4rem;
     height: 3rem;
     border-radius: 3rem;
-    
     text-align: center;
     font-size: 18px;
     line-height: 3rem;
+    box-shadow: inset -2px -2px 4px rgba(255, 255, 255, 0.5), inset 2px 2px 4px rgba(170, 170, 204, 0.25), inset 5px 5px 10px rgba(170, 170, 204, 0.5), inset -5px -5px 10px #FFFFFF;
 }
 
 .total {
@@ -81,21 +85,21 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    margin-bottom: 2rem;
+    margin: 1rem 0;
 }
 
 .total--text {
-    margin: 1rem;
+    margin: 1rem 0;
 }
 
 .total--output {
     display: inline-block;
-    width: 6rem;
+    width: 8rem;
     height: 3rem;
     border-radius: 3rem;
     margin-bottom: 1rem;
-
     text-align: center;
     font-size: 18px;
     line-height: 3rem;
+    box-shadow: inset -2px -2px 4px rgba(255, 255, 255, 0.5), inset 2px 2px 4px rgba(170, 170, 204, 0.25), inset 5px 5px 10px rgba(170, 170, 204, 0.5), inset -5px -5px 10px #FFFFFF;
 }
