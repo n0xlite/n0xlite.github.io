@@ -1,11 +1,11 @@
 import {useState} from 'react'
-import {dataSheet} from './dataSheet'
+import {priceSheet} from './priceSheet'
 import Navbar from './Navbar'
 import Counter from './Counter'
 import Total from './Total'
 
 function App() {
-  const [bid, setBid] = useState(dataSheet)
+  const [bid, setBid] = useState(priceSheet)
   
   function plusCount(id) {
     setBid(prevBid => {
