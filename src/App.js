@@ -7,36 +7,36 @@ import Total from './Total'
 function App() {
   const [bid, setBid] = useState(dataSheet)
   
-  function addItem(id) {
-    const newBid = [...bid]
-    const newBidItem = {...newBid[id]}
-    newBidItem.count = newBidItem.count + 1
-    newBid[id] = newBidItem
-    setBid(newBid)
+  function plusCount(id) {
+    setBid(prevBid => {
+        return prevBid.map(item => {
+            return item.id === id ? {...item, count: item.count + 1} : item
+        })
+    })
   }
 
-  function subItem(id) {
-    const newBid = [...bid]
-    const newBidItem = {...newBid[id]}
-    newBidItem.count = newBidItem.count - 1
-    newBid[id] = newBidItem
-    setBid(newBid)
+  function minusCount(id) {
+    setBid(prevBid => {
+        return prevBid.map(item => {
+            return item.id === id ? {...item, count: item.count - 1} : item
+        })
+    })
   }
 
-  function resetItem(id) {
-    const newBid = [...bid]
-    const newBidItem = {...newBid[id]}
-    newBidItem.count = 0
-    newBid[id] = newBidItem
-    setBid(newBid)
+  function resetCount(id) {
+    setBid(prevBid => {
+        return prevBid.map(item => {
+            return item.id === id ? {...item, count: 0} : item
+        })
+    })
   }
 
   let windowSum = 0
   let screenSum = 0
   bid.forEach(item => {
-    if (item.type === "window") {
+    if (item.type === "Pane") {
       windowSum += item.count * item.price
-    } else if (item.type === "screen") {
+    } else if (item.type === "Screen") {
       screenSum += item.count * item.price
     }
   })
@@ -44,13 +44,14 @@ function App() {
   const counters = bid.map(item => {
     return <Counter
         key={item.id}
+        id={item.id}
         name={item.name}
         type={item.type}
-        description={item.description}
+        desc={item.desc}
         count={item.count}
-        handleAdd={() => addItem(item.id)}
-        handleSub={() => subItem(item.id)}
-        handleReset={() => resetItem(item.id)}
+        handlePlus={plusCount}
+        handleMinus={minusCount}
+        handleReset={resetCount}
       />
   })
 
