@@ -18,7 +18,11 @@ function App() {
   function minusCount(id) {
     setBid(prevBid => {
         return prevBid.map(item => {
-            return item.id === id ? {...item, count: item.count - 1} : item
+            if (item.count === 0) {
+              return item
+            } else {
+              return item.id === id ? {...item, count: item.count - 1} : item
+            }
         })
     })
   }
@@ -44,14 +48,13 @@ function App() {
   const counters = bid.map(item => {
     return <Counter
         key={item.id}
-        id={item.id}
         name={item.name}
         type={item.type}
         desc={item.desc}
         count={item.count}
-        handlePlus={plusCount}
-        handleMinus={minusCount}
-        handleReset={resetCount}
+        handlePlus={() => plusCount(item.id)}
+        handleMinus={() => minusCount(item.id)}
+        handleReset={() => resetCount(item.id)}
       />
   })
 
