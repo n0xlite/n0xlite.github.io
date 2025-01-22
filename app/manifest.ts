@@ -13,7 +13,7 @@ export default function manifest(): MetadataRoute.Manifest {
       {
         src: '/favicon.svg',
         sizes: 'any',
-        type: 'svg+xml',
+        type: 'image/svg+xml',
         purpose: 'any'
       },
     ],
