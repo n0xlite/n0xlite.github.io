@@ -25,15 +25,8 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Copy CNAME
-        run: cp public/CNAME out/
-
-      - name: Create .nojekyll
-        run: touch out/.nojekyll
-
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           folder: out
           branch: gh-pages
-          clean: true
