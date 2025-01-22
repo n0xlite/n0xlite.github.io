@@ -1,7 +1,6 @@
 // WindowQuoteCalculator.js
 'use client';
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus, Minus, FileDown, RotateCcw } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
@@ -96,7 +95,7 @@ const WindowQuoteCalculator = () => {
       outOnly: outOnlyTotal,
       gutters: guttersTotal,
     });
-  }, [quantities]);
+  }, [quantities, prices]);
 
   // Component for consistent item display
   const CounterItem = ({ label, description, itemKey, increment = 1, showTenButtons = false }) => (
@@ -158,7 +157,7 @@ const WindowQuoteCalculator = () => {
     <div className="min-h-screen w-screen -mx-4 bg-gray-50 pb-10">
       <div className="fixed top-0 left-0 right-0 bg-white shadow-md z-10">
         <div className="p-4 text-center">
-          <h1 className="text-xl font-bold">Gwyndow's Bid Calculator</h1>
+          <h1 className="text-xl font-bold">Gwyndows Bid Calculator</h1>
         </div>
       </div>
 
