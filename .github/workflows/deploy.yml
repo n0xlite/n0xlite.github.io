@@ -1,5 +1,4 @@
 name: Deploy to GitHub Pages
-
 on:
   push:
     branches:
@@ -18,7 +17,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'  # Changed from 23 to 18 (LTS version)
+          node-version: '18'
 
       - name: Install dependencies
         run: npm ci
@@ -26,8 +25,15 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Copy CNAME
+        run: cp public/CNAME out/
+
+      - name: Create .nojekyll
+        run: touch out/.nojekyll
+
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           folder: out
           branch: gh-pages
+          clean: true

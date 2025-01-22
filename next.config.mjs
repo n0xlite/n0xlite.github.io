@@ -4,7 +4,6 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  basePath: '/n0xlite.github.io',
 }
 
 export default nextConfig
