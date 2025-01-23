@@ -242,7 +242,7 @@ const WindowQuoteCalculator = () => {
 
         {/* Notes Section */}
         <div className="mb-6">
-          <h2 className="text-lg font-semibold mb-3 px-1">Job Notes</h2>
+          <h2 className="text-lg font-semibold mb-3 px-1 text-center">Job Notes</h2>
           <div className="bg-white rounded-lg shadow-sm p-4">
             <Textarea
               value={notes}
