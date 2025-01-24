@@ -48,7 +48,7 @@ const WindowQuoteCalculator = () => {
     gutters: 0,
   });
 
-  const [notes, setNotes] = useState('');
+  // const [notes, setNotes] = useState('');
 
   // Helper functions remain the same
   const isWindow = (key) => key.includes('_UPPER') || key.includes('_LOWER');
