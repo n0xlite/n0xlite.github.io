@@ -1,10 +1,10 @@
 // WindowQuoteCalculator.js
 'use client';
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
 import { Plus, Minus, ClipboardCopy, RotateCcw } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
 import { Toaster } from '@/components/ui/toaster';
+import { useToast } from '@/hooks/use-toast';
 
 const prices = {
   XL_UPPER: 23.64,
@@ -29,9 +29,9 @@ const prices = {
 };
 
 const WindowQuoteCalculator = () => {
-  // Prices remain the same
+
   const { toast } = useToast();
-  // States remain the same
+
   const [quantities, setQuantities] = useState({
     XL_UPPER: 0, L_UPPER: 0, M_UPPER: 0, S_UPPER: 0, XS_UPPER: 0,
     XL_LOWER: 0, L_LOWER: 0, M_LOWER: 0, S_LOWER: 0, XS_LOWER: 0,
@@ -48,9 +48,9 @@ const WindowQuoteCalculator = () => {
     gutters: 0,
   });
 
+  // TODO Note functionality for PDF generation
   // const [notes, setNotes] = useState('');
 
-  // Helper functions remain the same
   const isWindow = (key) => key.includes('_UPPER') || key.includes('_LOWER');
   const isScreen = (key) => !key.includes('_UPPER') && !key.includes('_LOWER') && !key.includes('GUTTER');
 
@@ -139,10 +139,7 @@ const WindowQuoteCalculator = () => {
 
   const copyToClipboard = async (text) => {
     try {
-      console.log('Attempting to copy...');
-      // First try the modern API
-
-      // Fallback for mobile
+      // Handle Mobile
       const textarea = document.createElement('textarea');
       textarea.value = text;
       textarea.setAttribute('readonly', '');
@@ -157,17 +154,14 @@ const WindowQuoteCalculator = () => {
       selection.removeAllRanges();
       selection.addRange(range);
       textarea.setSelectionRange(0, 999999);
-
       document.execCommand('copy');
       document.body.removeChild(textarea);
 
-      console.log('Copy successful, showing toast');
       toast({
         title: "Success",
         description: "Bid copied to clipboard",
       });
     } catch (err) {
-      console.error('Copy failed:', err);
       toast({
         title: "Failed",
         description: "Could not copy to clipboard",
@@ -176,7 +170,7 @@ const WindowQuoteCalculator = () => {
     }
   };
 
-  // Calculation logic remains the same
+  // Calculation logic
   useEffect(() => {
     const windowsTotal = Object.keys(quantities).reduce((acc, key) => {
       if (isWindow(key)) return acc + (quantities[key] * prices[key]);
