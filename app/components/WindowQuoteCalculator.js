@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus, Minus, ClipboardCopy, RotateCcw } from 'lucide-react';
-import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Toaster } from '@/components/ui/toaster';
 
@@ -166,7 +165,6 @@ const WindowQuoteCalculator = () => {
       toast({
         title: "Success",
         description: "Bid copied to clipboard",
-        className: "top-50 left-1/2 transform -translate-x-1/2",
       });
     } catch (err) {
       console.error('Copy failed:', err);
@@ -265,11 +263,11 @@ const WindowQuoteCalculator = () => {
       <div className="min-h-screen w-screen -mx-4 bg-gray-50 pb-10">
         <div className="fixed top-0 left-0 right-0 bg-white shadow-md z-10">
           <div className="p-4 text-center">
-            <h1 className="text-xl font-bold">Gwyndows Bid Calculator</h1>
+            <h1 className="text-xl font-bold">Bid Calculator</h1>
           </div>
         </div>
 
-        <div className="pt-16 px-4 pb-48">
+        <div className="pt-16 px-4 pb-36">
           {/* Windows Section */}
           <div className="mb-6">
             <h2 className="text-lg font-semibold mb-3 text-center">Upper Windows</h2>
@@ -345,19 +343,6 @@ const WindowQuoteCalculator = () => {
                 description={'Linear feet rounded to nearest ten'}
               />
             ))}
-          </div>
-
-          {/* Notes Section */}
-          <div className="mb-6">
-            <h2 className="text-lg font-semibold mb-3 px-1 text-center">Job Notes</h2>
-            <div className="bg-white rounded-lg shadow-sm p-4">
-              <Textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Enter any additional notes about the job..."
-                className="min-h-[100px]"
-              />
-            </div>
           </div>
         </div>
 
