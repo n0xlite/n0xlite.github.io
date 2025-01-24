@@ -2,8 +2,10 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus, Minus, FileDown, RotateCcw } from 'lucide-react';
+import { Plus, Minus, ClipboardCopy, RotateCcw } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
+import { Toaster } from '@/components/ui/toaster';
 
 const prices = {
   XL_UPPER: 23.64,
@@ -29,7 +31,7 @@ const prices = {
 
 const WindowQuoteCalculator = () => {
   // Prices remain the same
-
+  const { toast } = useToast();
   // States remain the same
   const [quantities, setQuantities] = useState({
     XL_UPPER: 0, L_UPPER: 0, M_UPPER: 0, S_UPPER: 0, XS_UPPER: 0,
@@ -52,7 +54,7 @@ const WindowQuoteCalculator = () => {
   // Helper functions remain the same
   const isWindow = (key) => key.includes('_UPPER') || key.includes('_LOWER');
   const isScreen = (key) => !key.includes('_UPPER') && !key.includes('_LOWER') && !key.includes('GUTTER');
-  
+
   const updateQuantity = (item, increment) => {
     setQuantities(prev => ({
       ...prev,
@@ -72,6 +74,110 @@ const WindowQuoteCalculator = () => {
     setNotes('');
   };
 
+  const generateQuoteText = () => {
+    const sections = {
+      'Upper Windows': ['XL_UPPER', 'L_UPPER', 'M_UPPER', 'S_UPPER', 'XS_UPPER'],
+      'Lower Windows': ['XL_LOWER', 'L_LOWER', 'M_LOWER', 'S_LOWER', 'XS_LOWER'],
+      'Screens': [
+        'EXTERIOR_HALF_SCREEN',
+        'WHOLE_INTERIOR_SCREEN',
+        'EXTERIOR_HALF_SCREEN_INTERIOR',
+        'SOLAR_SCREEN',
+        'SCREW_SOLAR_SCREEN',
+        'UPPER_WOODEN_SCREEN',
+        'LOWER_WOODEN_SCREEN'
+      ],
+      'Gutters': ['FIRST_STORY_GUTTER', 'SECOND_STORY_GUTTER']
+    };
+
+    const labels = {
+      XL_UPPER: 'XL Upper',
+      L_UPPER: 'L Upper',
+      M_UPPER: 'M Upper',
+      S_UPPER: 'S Upper',
+      XS_UPPER: 'XS Upper',
+      XL_LOWER: 'XL Lower',
+      L_LOWER: 'L Lower',
+      M_LOWER: 'M Lower',
+      S_LOWER: 'S Lower',
+      XS_LOWER: 'XS Lower',
+      EXTERIOR_HALF_SCREEN: 'Half Screens',
+      WHOLE_INTERIOR_SCREEN: 'Whole/Interior Screens',
+      EXTERIOR_HALF_SCREEN_INTERIOR: 'Half Screens (remove from interior)',
+      SOLAR_SCREEN: 'Solar Screens',
+      SCREW_SOLAR_SCREEN: 'Screw-On Solar Screens',
+      UPPER_WOODEN_SCREEN: 'Upper Wooden Screens',
+      LOWER_WOODEN_SCREEN: 'Lower Wooden Screens',
+      FIRST_STORY_GUTTER: 'Gutters (1st Story)',
+      SECOND_STORY_GUTTER: 'Gutters (2nd Story)'
+    };
+
+    let quoteText = '';
+
+    for (const [section, items] of Object.entries(sections)) {
+      const sectionItems = items
+        .filter(key => quantities[key] > 0)
+        .map(key => `${labels[key]}: ${section == 'Gutters' ? `${quantities[key]} ft` : quantities[key]}`);
+
+      if (sectionItems.length > 0) {
+        quoteText += `${sectionItems.join('\n')}\n`;
+      }
+    }
+
+    quoteText += `\n`;
+    if (totals.inOut > 0) {
+      quoteText += `In/Out: $${totals.inOut.toFixed(2)}\n`;
+    }
+    if (totals.outOnly > 0) {
+      quoteText += `Out Only: $${totals.outOnly.toFixed(2)}\n`;
+    }
+    if (totals.gutters > 0) {
+      quoteText += `Gutter Cleaning: $${totals.gutters.toFixed(2)}\n`;
+    }
+
+    return quoteText;
+  };
+
+  const copyToClipboard = async (text) => {
+    try {
+      console.log('Attempting to copy...');
+      // First try the modern API
+
+      // Fallback for mobile
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.setAttribute('readonly', '');
+      textarea.style.position = 'absolute';
+      textarea.style.left = '-9999px';
+      document.body.appendChild(textarea);
+
+      // Handle iOS
+      const range = document.createRange();
+      range.selectNodeContents(textarea);
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+      textarea.setSelectionRange(0, 999999);
+
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+
+      console.log('Copy successful, showing toast');
+      toast({
+        title: "Success",
+        description: "Bid copied to clipboard",
+        className: "top-50 left-1/2 transform -translate-x-1/2",
+      });
+    } catch (err) {
+      console.error('Copy failed:', err);
+      toast({
+        title: "Failed",
+        description: "Could not copy to clipboard",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Calculation logic remains the same
   useEffect(() => {
     const windowsTotal = Object.keys(quantities).reduce((acc, key) => {
@@ -84,7 +190,7 @@ const WindowQuoteCalculator = () => {
       return acc;
     }, 0);
 
-    const guttersTotal = 
+    const guttersTotal =
       (quantities.FIRST_STORY_GUTTER * prices.FIRST_STORY_GUTTER) +
       (quantities.SECOND_STORY_GUTTER * prices.SECOND_STORY_GUTTER);
 
@@ -108,7 +214,7 @@ const WindowQuoteCalculator = () => {
         </div>
         <div className="flex items-center space-x-3">
           {showTenButtons && (
-            <Button 
+            <Button
               onClick={() => updateQuantity(itemKey, -10)}
               variant="outline"
               className="h-12 px-3 rounded-full"
@@ -116,7 +222,7 @@ const WindowQuoteCalculator = () => {
               -10
             </Button>
           )}
-          <Button 
+          <Button
             onClick={() => updateQuantity(itemKey, -increment)}
             variant="outline"
             className="h-12 w-12 rounded-full"
@@ -126,7 +232,7 @@ const WindowQuoteCalculator = () => {
           <span className="text-xl font-semibold w-8 text-center">
             {quantities[itemKey]}
           </span>
-          <Button 
+          <Button
             onClick={() => updateQuantity(itemKey, increment)}
             variant="outline"
             className="h-12 w-12 rounded-full"
@@ -134,7 +240,7 @@ const WindowQuoteCalculator = () => {
             <Plus className="h-6 w-6" />
           </Button>
           {showTenButtons && (
-            <Button 
+            <Button
               onClick={() => updateQuantity(itemKey, 10)}
               variant="outline"
               className="h-12 px-3 rounded-full"
@@ -155,141 +261,144 @@ const WindowQuoteCalculator = () => {
   );
 
   return (
-    <div className="min-h-screen w-screen -mx-4 bg-gray-50 pb-10">
-      <div className="fixed top-0 left-0 right-0 bg-white shadow-md z-10">
-        <div className="p-4 text-center">
-          <h1 className="text-xl font-bold">Gwyndows Bid Calculator</h1>
-        </div>
-      </div>
-
-      <div className="pt-16 px-4 pb-48">
-        {/* Windows Section */}
-        <div className="mb-6">
-          <h2 className="text-lg font-semibold mb-3 text-center">Upper Windows</h2>
-          {[
-            ['XL_UPPER', 'Extra Large Upper Pane', '> 27 sqft'],
-            ['L_UPPER', 'Large Upper Pane', '13 - 26 sqft'],
-            ['M_UPPER', 'Medium Upper Pane', '4 - 12 sqft'],
-            ['S_UPPER', 'Small Upper Pane', '1 - 3 sqft'],
-            ['XS_UPPER', 'Extra Small Upper Pane', '< 1 sqft']
-          ].map(([key, label, desc]) => (
-            <CounterItem
-              key={key}
-              label={label}
-              itemKey={key}
-              description={desc}
-              showTenButtons={key === 'XS_UPPER'}
-            />
-          ))}
+    <>
+      <div className="min-h-screen w-screen -mx-4 bg-gray-50 pb-10">
+        <div className="fixed top-0 left-0 right-0 bg-white shadow-md z-10">
+          <div className="p-4 text-center">
+            <h1 className="text-xl font-bold">Gwyndows Bid Calculator</h1>
+          </div>
         </div>
 
-        <div className="mb-6">
-          <h2 className="text-lg font-semibold mb-3 text-center">Lower Windows</h2>
-          {[
-            ['XL_LOWER', 'Extra Large Lower Pane', '> 27 sqft'],
-            ['L_LOWER', 'Large Lower Pane', '13 - 26 sqft'],
-            ['M_LOWER', 'Medium Lower Pane', '4 - 12 sqft'],
-            ['S_LOWER', 'Small Lower Pane', '1 - 3 sqft'],
-            ['XS_LOWER', 'Extra Small Lower Pane', '< 1 sqft']
-          ].map(([key, label, desc]) => (
-            <CounterItem
-              key={key}
-              label={label}
-              itemKey={key}
-              description={desc}
-              showTenButtons={key === 'XS_LOWER'}
-            />
-          ))}
+        <div className="pt-16 px-4 pb-48">
+          {/* Windows Section */}
+          <div className="mb-6">
+            <h2 className="text-lg font-semibold mb-3 text-center">Upper Windows</h2>
+            {[
+              ['XL_UPPER', 'Extra Large Upper Pane', '> 27 sqft'],
+              ['L_UPPER', 'Large Upper Pane', '13 - 26 sqft'],
+              ['M_UPPER', 'Medium Upper Pane', '4 - 12 sqft'],
+              ['S_UPPER', 'Small Upper Pane', '1 - 3 sqft'],
+              ['XS_UPPER', 'Extra Small Upper Pane', '< 1 sqft']
+            ].map(([key, label, desc]) => (
+              <CounterItem
+                key={key}
+                label={label}
+                itemKey={key}
+                description={desc}
+                showTenButtons={key === 'XS_UPPER'}
+              />
+            ))}
+          </div>
+
+          <div className="mb-6">
+            <h2 className="text-lg font-semibold mb-3 text-center">Lower Windows</h2>
+            {[
+              ['XL_LOWER', 'Extra Large Lower Pane', '> 27 sqft'],
+              ['L_LOWER', 'Large Lower Pane', '13 - 26 sqft'],
+              ['M_LOWER', 'Medium Lower Pane', '4 - 12 sqft'],
+              ['S_LOWER', 'Small Lower Pane', '1 - 3 sqft'],
+              ['XS_LOWER', 'Extra Small Lower Pane', '< 1 sqft']
+            ].map(([key, label, desc]) => (
+              <CounterItem
+                key={key}
+                label={label}
+                itemKey={key}
+                description={desc}
+                showTenButtons={key === 'XS_LOWER'}
+              />
+            ))}
+          </div>
+
+          {/* Screens Section */}
+          <div className="mb-6">
+            <h2 className="text-lg font-semibold mb-3 text-center">Screens</h2>
+            {[
+              ['EXTERIOR_HALF_SCREEN', 'Half Screens'],
+              ['EXTERIOR_HALF_SCREEN_INTERIOR', 'Half Screens', 'Remove from inside'],
+              ['WHOLE_INTERIOR_SCREEN', 'Full Screens', 'Interior or exterior'],
+              ['SOLAR_SCREEN', 'Solar Screens'],
+              ['SCREW_SOLAR_SCREEN', 'Screw-On Solar Screens'],
+              ['UPPER_WOODEN_SCREEN', 'Upper Wooden Screens'],
+              ['LOWER_WOODEN_SCREEN', 'Lower Wooden Screens'],
+            ].map(([key, label, desc]) => (
+              <CounterItem
+                key={key}
+                label={label}
+                itemKey={key}
+                description={desc}
+              />
+            ))}
+          </div>
+
+          {/* Gutters Section */}
+          <div className="mb-6">
+            <h2 className="text-lg font-semibold mb-3 text-center">Gutters</h2>
+            {[
+              ['FIRST_STORY_GUTTER', 'First Story Gutters'],
+              ['SECOND_STORY_GUTTER', 'Second Story Gutters'],
+            ].map(([key, label]) => (
+              <CounterItem
+                key={key}
+                label={label}
+                itemKey={key}
+                increment={10}
+                description={'Linear feet rounded to nearest ten'}
+              />
+            ))}
+          </div>
+
+          {/* Notes Section */}
+          <div className="mb-6">
+            <h2 className="text-lg font-semibold mb-3 px-1 text-center">Job Notes</h2>
+            <div className="bg-white rounded-lg shadow-sm p-4">
+              <Textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Enter any additional notes about the job..."
+                className="min-h-[100px]"
+              />
+            </div>
+          </div>
         </div>
 
-        {/* Screens Section */}
-        <div className="mb-6">
-          <h2 className="text-lg font-semibold mb-3 text-center">Screens</h2>
-          {[
-            ['EXTERIOR_HALF_SCREEN', 'Half Screens'],
-            ['EXTERIOR_HALF_SCREEN_INTERIOR', 'Half Screens', 'Remove from inside'],
-            ['WHOLE_INTERIOR_SCREEN', 'Full Screens', 'Interior or exterior'],
-            ['SOLAR_SCREEN', 'Solar Screens'],
-            ['SCREW_SOLAR_SCREEN', 'Screw-On Solar Screens'],
-            ['UPPER_WOODEN_SCREEN', 'Upper Wooden Screens'],
-            ['LOWER_WOODEN_SCREEN', 'Lower Wooden Screens'],
-          ].map(([key, label, desc]) => (
-            <CounterItem
-              key={key}
-              label={label}
-              itemKey={key}
-              description={desc}
-            />
-          ))}
-        </div>
+        {/* Fixed bottom section for totals and actions */}
+        <div className="fixed bottom-0 left-0 right-0 bg-white shadow-lg border-t">
+          <div className="p-4 space-y-2">
+            <div className="flex justify-between text-lg font-bold">
+              <span>In/Out:</span>
+              <span>${totals.inOut.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between text-lg font-bold">
+              <span>Out Only:</span>
+              <span>${totals.outOnly.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between text-lg font-bold">
+              <span>Gutters:</span>
+              <span>${totals.gutters.toFixed(2)}</span>
+            </div>
 
-        {/* Gutters Section */}
-        <div className="mb-6">
-          <h2 className="text-lg font-semibold mb-3 text-center">Gutters</h2>
-          {[
-            ['FIRST_STORY_GUTTER', 'First Story Gutters'],
-            ['SECOND_STORY_GUTTER', 'Second Story Gutters'],
-          ].map(([key, label]) => (
-            <CounterItem
-              key={key}
-              label={label}
-              itemKey={key}
-              increment={10}
-              description={'Linear feet rounded to nearest ten'}
-            />
-          ))}
-        </div>
-
-        {/* Notes Section */}
-        <div className="mb-6">
-          <h2 className="text-lg font-semibold mb-3 px-1 text-center">Job Notes</h2>
-          <div className="bg-white rounded-lg shadow-sm p-4">
-            <Textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Enter any additional notes about the job..."
-              className="min-h-[100px]"
-            />
+            <div className="flex space-x-2 pt-2 pb-2">
+              <Button
+                onClick={resetAll}
+                variant="destructive"
+                className="flex-1 h-12"
+              >
+                <RotateCcw className="mr-2 h-5 w-5" />
+                Reset All
+              </Button>
+              <Button
+                onClick={() => copyToClipboard(generateQuoteText())}
+                className="flex-1 h-12"
+              >
+                <ClipboardCopy className="mr-2 h-5 w-4" />
+                Copy Bid
+              </Button>
+            </div>
           </div>
         </div>
       </div>
-
-      {/* Fixed bottom section for totals and actions */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white shadow-lg border-t">
-        <div className="p-4 space-y-2">
-          <div className="flex justify-between text-lg font-bold">
-            <span>In/Out:</span>
-            <span>${totals.inOut.toFixed(2)}</span>
-          </div>
-          <div className="flex justify-between text-lg font-bold">
-            <span>Out Only:</span>
-            <span>${totals.outOnly.toFixed(2)}</span>
-          </div>
-          <div className="flex justify-between text-lg font-bold">
-            <span>Gutters:</span>
-            <span>${totals.gutters.toFixed(2)}</span>
-          </div>
-          
-          <div className="flex space-x-2 pt-2 pb-2">
-            <Button 
-              onClick={resetAll}
-              variant="destructive"
-              className="flex-1 h-12"
-            >
-              <RotateCcw className="mr-2 h-5 w-5" />
-              Reset All
-            </Button>
-            <Button 
-              onClick={() => {}}
-              className="flex-1 h-12"
-            >
-              <FileDown className="mr-2 h-5 w-5" />
-              Generate PDF
-            </Button>
-          </div>
-        </div>
-      </div>
-    </div>
+      <Toaster />
+    </>
   );
 };
 
