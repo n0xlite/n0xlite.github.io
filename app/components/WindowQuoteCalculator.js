@@ -162,6 +162,7 @@ const WindowQuoteCalculator = () => {
         description: "Bid copied to clipboard",
       });
     } catch (err) {
+      console.error("Oops!", err)
       toast({
         title: "Failed",
         description: "Could not copy to clipboard",
