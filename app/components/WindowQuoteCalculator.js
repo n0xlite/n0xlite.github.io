@@ -211,7 +211,7 @@ const WindowQuoteCalculator = () => {
               variant="outline"
               className="h-12 px-3 rounded-full"
             >
-              -10
+              <Minus className="h-6 w-6" /><Minus className="h-6 w-6" />
             </Button>
           )}
           <Button
@@ -237,7 +237,7 @@ const WindowQuoteCalculator = () => {
               variant="outline"
               className="h-12 px-3 rounded-full"
             >
-              +10
+              <Plus className="h-6 w-6" /><Plus className="h-6 w-6" />
             </Button>
           )}
           <Button
