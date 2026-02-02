@@ -1,12 +1,9 @@
 // WindowQuoteCalculator.js
 'use client';
-import React, { useState, useEffect } from 'react';
-import { Plus, Minus, ClipboardCopy, RotateCcw } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Toaster } from '@/components/ui/toaster';
-import { useToast } from '@/hooks/use-toast';
+import React, { useState, useMemo } from 'react';
+import { RotateCcw, Copy } from 'lucide-react';
 
-const prices = {
+const PRICES = {
   XL_UPPER_WINDOW: 23.64,
   L_UPPER_WINDOW: 16.06,
   M_UPPER_WINDOW: 8.59,
@@ -19,7 +16,7 @@ const prices = {
   XS_LOWER_WINDOW: 2.54,
   EXTERIOR_HALF_SCREEN: 2.72,
   WHOLE_INTERIOR_SCREEN: 3.12,
-  EXTERIOR_HALF_SCREEN_INTERIOR: 4.00,
+  EXTERIOR_HALF_SCREEN_INTERIOR: 4.0,
   SOLAR_SCREEN: 5.56,
   SCREW_SOLAR_SCREEN: 8,
   UPPER_WOODEN_SCREEN: 14,
@@ -28,358 +25,468 @@ const prices = {
   SECOND_STORY_GUTTER: 2,
 };
 
+const ITEMS_CONFIG = {
+  upperWindows: [
+    { key: 'XL_UPPER_WINDOW', label: 'XL Upper', desc: '> 27 sqft' },
+    { key: 'L_UPPER_WINDOW', label: 'L Upper', desc: '13 - 26 sqft' },
+    { key: 'M_UPPER_WINDOW', label: 'M Upper', desc: '4 - 12 sqft' },
+    { key: 'S_UPPER_WINDOW', label: 'S Upper', desc: '1 - 3 sqft' },
+    {
+      key: 'XS_UPPER_WINDOW',
+      label: 'XS Upper',
+      desc: '< 1 sqft',
+      showTens: true,
+    },
+  ],
+  lowerWindows: [
+    { key: 'XL_LOWER_WINDOW', label: 'XL Lower', desc: '> 27 sqft' },
+    { key: 'L_LOWER_WINDOW', label: 'L Lower', desc: '13 - 26 sqft' },
+    { key: 'M_LOWER_WINDOW', label: 'M Lower', desc: '4 - 12 sqft' },
+    { key: 'S_LOWER_WINDOW', label: 'S Lower', desc: '1 - 3 sqft' },
+    {
+      key: 'XS_LOWER_WINDOW',
+      label: 'XS Lower',
+      desc: '< 1 sqft',
+      showTens: true,
+    },
+  ],
+  screens: [
+    { key: 'EXTERIOR_HALF_SCREEN', label: 'Half Screens' },
+    {
+      key: 'EXTERIOR_HALF_SCREEN_INTERIOR',
+      label: 'Half Screens',
+      desc: 'Remove from inside',
+    },
+    {
+      key: 'WHOLE_INTERIOR_SCREEN',
+      label: 'Full Screens',
+      desc: 'Interior or exterior',
+    },
+    { key: 'SOLAR_SCREEN', label: 'Solar Screens' },
+    { key: 'SCREW_SOLAR_SCREEN', label: 'Screw-On Solar Screens' },
+    { key: 'UPPER_WOODEN_SCREEN', label: 'Upper Wooden Screens' },
+    { key: 'LOWER_WOODEN_SCREEN', label: 'Lower Wooden Screens' },
+  ],
+  gutters: [
+    {
+      key: 'FIRST_STORY_GUTTER',
+      label: 'First Story',
+      desc: 'Linear feet rounded to nearest ten',
+      increment: 10,
+    },
+    {
+      key: 'SECOND_STORY_GUTTER',
+      label: 'Second Story',
+      desc: 'Linear feet rounded to nearest ten',
+      increment: 10,
+    },
+  ],
+};
+
+const initQuantities = () =>
+  Object.keys(PRICES).reduce((acc, key) => ({ ...acc, [key]: 0 }), {});
+
 const WindowQuoteCalculator = () => {
+  const [quantities, setQuantities] = useState(initQuantities);
+  const [toast, setToast] = useState('');
 
-  const { toast } = useToast();
-
-  const [quantities, setQuantities] = useState({
-    XL_UPPER_WINDOW: 0, L_UPPER_WINDOW: 0, M_UPPER_WINDOW: 0, S_UPPER_WINDOW: 0, XS_UPPER_WINDOW: 0,
-    XL_LOWER_WINDOW: 0, L_LOWER_WINDOW: 0, M_LOWER_WINDOW: 0, S_LOWER_WINDOW: 0, XS_LOWER_WINDOW: 0,
-    EXTERIOR_HALF_SCREEN: 0, WHOLE_INTERIOR_SCREEN: 0,
-    EXTERIOR_HALF_SCREEN_INTERIOR: 0, SOLAR_SCREEN: 0,
-    SCREW_SOLAR_SCREEN: 0, UPPER_WOODEN_SCREEN: 0,
-    LOWER_WOODEN_SCREEN: 0, FIRST_STORY_GUTTER: 0,
-    SECOND_STORY_GUTTER: 0,
-  });
-
-  const [totals, setTotals] = useState({
-    inOut: 0,
-    outOnly: 0,
-    gutters: 0,
-  });
-
-  // TODO Note functionality for PDF generation
-  // const [notes, setNotes] = useState('');
-
-  const isWindow = (key) => key.includes('WINDOW');
-  const isScreen = (key) => key.includes('SCREEN');
-  const isGutter = (key) => key.includes('GUTTER');
-
-  const updateQuantity = (item, increment) => {
-    setQuantities(prev => ({
+  const updateQty = (key, delta) =>
+    setQuantities((prev) => ({
       ...prev,
-      [item]: Math.max(0, prev[item] + increment)
+      [key]: Math.max(0, prev[key] + delta),
     }));
+
+  const resetItem = (key) => setQuantities((prev) => ({ ...prev, [key]: 0 }));
+  const resetAll = () => setQuantities(initQuantities());
+
+  const showToast = (message) => {
+    setToast(message);
+    setTimeout(() => setToast(''), 3000);
   };
 
-  const resetItem = (item) => {
-    setQuantities(prev => ({ ...prev, [item]: 0 }));
-  };
+  const calcTotals = () => {
+    const windows = Object.entries(quantities)
+      .filter(([k]) => k.includes('WINDOW'))
+      .reduce((sum, [k, qty]) => sum + qty * PRICES[k], 0);
 
-  const resetAll = () => {
-    setQuantities(Object.keys(quantities).reduce((acc, key) => {
-      acc[key] = 0;
-      return acc;
-    }, {}));
-  };
+    const screens = Object.entries(quantities)
+      .filter(([k]) => k.includes('SCREEN'))
+      .reduce((sum, [k, qty]) => sum + qty * PRICES[k], 0);
 
-  const generateQuoteText = () => {
-    const sections = {
-      'Upper Windows': ['XL_UPPER_WINDOW', 'L_UPPER_WINDOW', 'M_UPPER_WINDOW', 'S_UPPER_WINDOW', 'XS_UPPER_WINDOW'],
-      'Lower Windows': ['XL_LOWER_WINDOW', 'L_LOWER_WINDOW', 'M_LOWER_WINDOW', 'S_LOWER_WINDOW', 'XS_LOWER_WINDOW'],
-      'Screens': [
-        'EXTERIOR_HALF_SCREEN',
-        'WHOLE_INTERIOR_SCREEN',
-        'EXTERIOR_HALF_SCREEN_INTERIOR',
-        'SOLAR_SCREEN',
-        'SCREW_SOLAR_SCREEN',
-        'UPPER_WOODEN_SCREEN',
-        'LOWER_WOODEN_SCREEN'
-      ],
-      'Gutters': ['FIRST_STORY_GUTTER', 'SECOND_STORY_GUTTER']
+    const gutters = Object.entries(quantities)
+      .filter(([k]) => k.includes('GUTTER'))
+      .reduce((sum, [k, qty]) => sum + qty * PRICES[k], 0);
+
+    return {
+      inOut: windows + screens,
+      outOnly: windows * 0.67 + screens,
+      gutters,
     };
-
-    const labels = {
-      XL_UPPER_WINDOW: 'XL Upper',
-      L_UPPER_WINDOW: 'L Upper',
-      M_UPPER_WINDOW: 'M Upper',
-      S_UPPER_WINDOW: 'S Upper',
-      XS_UPPER_WINDOW: 'XS Upper',
-      XL_LOWER_WINDOW: 'XL Lower',
-      L_LOWER_WINDOW: 'L Lower',
-      M_LOWER_WINDOW: 'M Lower',
-      S_LOWER_WINDOW: 'S Lower',
-      XS_LOWER_WINDOW: 'XS Lower',
-      EXTERIOR_HALF_SCREEN: 'Half Screens',
-      WHOLE_INTERIOR_SCREEN: 'Whole/Interior Screens',
-      EXTERIOR_HALF_SCREEN_INTERIOR: 'Half Screens (remove from interior)',
-      SOLAR_SCREEN: 'Solar Screens',
-      SCREW_SOLAR_SCREEN: 'Screw-On Solar Screens',
-      UPPER_WOODEN_SCREEN: 'Upper Wooden Screens',
-      LOWER_WOODEN_SCREEN: 'Lower Wooden Screens',
-      FIRST_STORY_GUTTER: 'Gutters (1st Story)',
-      SECOND_STORY_GUTTER: 'Gutters (2nd Story)'
-    };
-
-    let quoteText = '';
-
-    for (const [section, items] of Object.entries(sections)) {
-      const sectionItems = items
-        .filter(key => quantities[key] > 0)
-        .map(key => `${labels[key]}: ${section == 'Gutters' ? `${quantities[key]} ft` : quantities[key]}`);
-
-      if (sectionItems.length > 0) {
-        quoteText += `${sectionItems.join('\n')}\n`;
-      }
-    }
-
-    quoteText += `\n`;
-    if (totals.inOut > 0) {
-      quoteText += `In/Out: $${totals.inOut.toFixed(2)}\n`;
-    }
-    if (totals.outOnly > 0) {
-      quoteText += `Out Only: $${totals.outOnly.toFixed(2)}\n`;
-    }
-    if (totals.gutters > 0) {
-      quoteText += `Gutter Cleaning: $${totals.gutters.toFixed(2)}\n`;
-    }
-
-    return quoteText;
   };
 
-  const copyToClipboard = async (text) => {
-    // Prefer the async Clipboard API when available
-    try {
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(text);
-      } else {
-        // Fallback for older browsers / contexts
-        const textarea = document.createElement('textarea');
-        textarea.value = text;
-        textarea.setAttribute('readonly', '');
-        textarea.style.position = 'absolute';
-        textarea.style.left = '-9999px';
-        document.body.appendChild(textarea);
-        textarea.select();
-        textarea.setSelectionRange(0, textarea.value.length);
-        document.execCommand('copy');
-        document.body.removeChild(textarea);
-      }
+  const totals = useMemo(() => calcTotals(), [quantities]);
 
-      toast({
-        title: 'Success',
-        description: 'Bid copied to clipboard',
+  const generateQuote = () => {
+    const lines = [];
+
+    Object.entries(ITEMS_CONFIG).forEach(([section, items]) => {
+      items.forEach(({ key, label, desc }) => {
+        if (quantities[key] > 0) {
+          const isGutter = section === 'gutters';
+          const value = isGutter ? `${quantities[key]} ft` : quantities[key];
+          const fullLabel = desc ? `${label} (${desc})` : label;
+          lines.push(`${fullLabel}: ${value}`);
+        }
       });
-    } catch (err) {
-      console.error('Clipboard error:', err);
-      toast({
-        title: 'Failed',
-        description: 'Could not copy to clipboard',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  // Calculation logic
-  useEffect(() => {
-    const windowsTotal = Object.keys(quantities).reduce((acc, key) => {
-      if (isWindow(key)) return acc + (quantities[key] * prices[key]);
-      return acc;
-    }, 0);
-
-    const screensTotal = Object.keys(quantities).reduce((acc, key) => {
-      if (isScreen(key)) return acc + (quantities[key] * prices[key]);
-      return acc;
-    }, 0);
-
-    const guttersTotal = Object.keys(quantities).reduce((acc, key) => {
-      if (isGutter(key)) return acc + (quantities[key] * prices[key]);
-      return acc;
-    }, 0);
-
-    const inOutTotal = windowsTotal + screensTotal;
-    const outOnlyTotal = (windowsTotal * 0.67) + screensTotal;
-
-    setTotals({
-      inOut: inOutTotal,
-      outOnly: outOnlyTotal,
-      gutters: guttersTotal,
     });
-  }, [quantities]);
 
-  // Component for consistent item display
-  const CounterItem = ({ label, description, itemKey, increment = 1, showTenButtons = false }) => (
-    <div className="w-full p-4 bg-white rounded-lg shadow-sm mb-2">
-      <div className="flex flex-col space-y-3 items-center text-center">
-        <div className="w-full">
-          <h3 className="text-lg font-semibold">{label}</h3>
-          <p className="text-sm text-gray-600 px-4">{description}</p>
+    if (lines.length) lines.push('');
+    if (totals.inOut > 0) lines.push(`In/Out: $${totals.inOut.toFixed(2)}`);
+    if (totals.outOnly > 0)
+      lines.push(`Out Only: $${totals.outOnly.toFixed(2)}`);
+    if (totals.gutters > 0)
+      lines.push(`Gutter Cleaning: $${totals.gutters.toFixed(2)}`);
+
+    return lines.join('\n');
+  };
+
+  const copyQuote = async () => {
+    try {
+      await navigator.clipboard.writeText(generateQuote());
+      showToast('Bid copied to clipboard');
+    } catch {
+      showToast('Could not copy to clipboard');
+    }
+  };
+
+  const Counter = ({ item }) => {
+    const { key, label, desc, increment = 1, showTens = false } = item;
+    return (
+      <div
+        style={{
+          backgroundColor: '#1e1e1e',
+          border: '1px solid #444',
+          borderRadius: '8px',
+          marginBottom: '12px',
+          overflow: 'hidden',
+        }}
+      >
+        <div
+          style={{
+            padding: '16px',
+            borderBottom: '1px solid #444',
+            textAlign: 'center',
+          }}
+        >
+          <h3 style={{ margin: '0 0 4px 0', fontSize: '16px', color: '#fff' }}>
+            {label}
+          </h3>
+          {desc && (
+            <p style={{ margin: 0, fontSize: '14px', color: '#999' }}>
+              {desc}
+            </p>
+          )}
         </div>
-        <div className="flex items-center space-x-3">
-          {showTenButtons && (
-            <Button
-              onClick={() => updateQuantity(itemKey, -10)}
-              variant="outline"
-              className="h-12 px-3 rounded-full"
+        <div
+          style={{
+            padding: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+          }}
+        >
+          {showTens && (
+            <button
+              onClick={() => updateQty(key, -10)}
+              style={buttonStyle}
+              aria-label="Decrease by 10"
             >
-              <Minus className="h-6 w-6" /><Minus className="h-6 w-6" />
-            </Button>
+              --
+            </button>
           )}
-          <Button
-            onClick={() => updateQuantity(itemKey, -increment)}
-            variant="outline"
-            className="h-12 w-12 rounded-full"
+          <button
+            onClick={() => updateQty(key, -increment)}
+            style={buttonStyle}
+            aria-label="Decrease"
           >
-            <Minus className="h-6 w-6" />
-          </Button>
-          <span className="text-xl font-semibold w-8 text-center">
-            {quantities[itemKey]}
+            -
+          </button>
+          <span
+            style={{
+              fontSize: '20px',
+              fontWeight: 'bold',
+              minWidth: '40px',
+              textAlign: 'center',
+              color: '#fff',
+            }}
+          >
+            {quantities[key]}
           </span>
-          <Button
-            onClick={() => updateQuantity(itemKey, increment)}
-            variant="outline"
-            className="h-12 w-12 rounded-full"
+          <button
+            onClick={() => updateQty(key, increment)}
+            style={buttonStyle}
+            aria-label="Increase"
           >
-            <Plus className="h-6 w-6" />
-          </Button>
-          {showTenButtons && (
-            <Button
-              onClick={() => updateQuantity(itemKey, 10)}
-              variant="outline"
-              className="h-12 px-3 rounded-full"
+            +
+          </button>
+          {showTens && (
+            <button
+              onClick={() => updateQty(key, 10)}
+              style={buttonStyle}
+              aria-label="Increase by 10"
             >
-              <Plus className="h-6 w-6" /><Plus className="h-6 w-6" />
-            </Button>
+              ++
+            </button>
           )}
-          <Button
-            onClick={() => resetItem(itemKey)}
-            variant="ghost"
-            className="h-12 w-12 rounded-full"
+          <button
+            onClick={() => resetItem(key)}
+            style={{ ...buttonStyle, marginLeft: '8px' }}
+            aria-label="Reset item"
           >
-            <RotateCcw className="h-6 w-6" />
-          </Button>
+            <RotateCcw size={16} />
+          </button>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
-    <>
-      <div className="min-h-screen w-screen -mx-4 bg-gray-50 pb-10">
-        <div className="fixed top-0 left-0 right-0 bg-white shadow-md z-10">
-          <div className="p-4 text-center">
-            <h1 className="text-xl font-bold">Bid Calculator</h1>
-          </div>
+    <div
+      style={{
+        minHeight: '100vh',
+        backgroundColor: '#121212',
+        color: '#fff',
+        fontFamily: 'system-ui, -apple-system, sans-serif',
+      }}
+    >
+      {toast && (
+        <div
+          style={{
+            position: 'fixed',
+            top: '20px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            backgroundColor: '#333',
+            color: '#fff',
+            padding: '12px 24px',
+            borderRadius: '8px',
+            zIndex: 1000,
+            border: '1px solid #444',
+          }}
+        >
+          {toast}
+        </div>
+      )}
+
+      <div
+        style={{
+          maxWidth: '600px',
+          margin: '0 auto',
+          padding: '20px',
+          paddingBottom: '200px',
+        }}
+      >
+        <div
+          style={{
+            textAlign: 'center',
+            marginBottom: '24px',
+          }}
+        >
+          <img
+            src="/logo_white.png"
+            alt="Company Logo"
+            style={{
+              maxWidth: '180px',
+              height: 'auto',
+            }}
+          />
         </div>
 
-        <div className="pt-16 px-4 pb-36">
-          {/* Windows Section */}
-          <div className="mb-6">
-            <h2 className="text-lg font-semibold mb-3 text-center">Upper Windows</h2>
-            {[
-              ['XL_UPPER_WINDOW', 'Extra Large Upper Pane', '> 27 sqft'],
-              ['L_UPPER_WINDOW', 'Large Upper Pane', '13 - 26 sqft'],
-              ['M_UPPER_WINDOW', 'Medium Upper Pane', '4 - 12 sqft'],
-              ['S_UPPER_WINDOW', 'Small Upper Pane', '1 - 3 sqft'],
-              ['XS_UPPER_WINDOW', 'Extra Small Upper Pane', '< 1 sqft']
-            ].map(([key, label, desc]) => (
-              <CounterItem
-                key={key}
-                label={label}
-                itemKey={key}
-                description={desc}
-                showTenButtons={key === 'XS_UPPER_WINDOW'}
-              />
-            ))}
-          </div>
+        <section style={{ marginBottom: '32px' }}>
+          <h2
+            style={{
+              fontSize: '20px',
+              marginBottom: '16px',
+              textAlign: 'center',
+            }}
+          >
+            Upper Windows
+          </h2>
+          {ITEMS_CONFIG.upperWindows.map((item) => (
+            <Counter key={item.key} item={item} />
+          ))}
+        </section>
 
-          <div className="mb-6">
-            <h2 className="text-lg font-semibold mb-3 text-center">Lower Windows</h2>
-            {[
-              ['XL_LOWER_WINDOW', 'Extra Large Lower Pane', '> 27 sqft'],
-              ['L_LOWER_WINDOW', 'Large Lower Pane', '13 - 26 sqft'],
-              ['M_LOWER_WINDOW', 'Medium Lower Pane', '4 - 12 sqft'],
-              ['S_LOWER_WINDOW', 'Small Lower Pane', '1 - 3 sqft'],
-              ['XS_LOWER_WINDOW', 'Extra Small Lower Pane', '< 1 sqft']
-            ].map(([key, label, desc]) => (
-              <CounterItem
-                key={key}
-                label={label}
-                itemKey={key}
-                description={desc}
-                showTenButtons={key === 'XS_LOWER_WINDOW'}
-              />
-            ))}
-          </div>
+        <section style={{ marginBottom: '32px' }}>
+          <h2
+            style={{
+              fontSize: '20px',
+              marginBottom: '16px',
+              textAlign: 'center',
+            }}
+          >
+            Lower Windows
+          </h2>
+          {ITEMS_CONFIG.lowerWindows.map((item) => (
+            <Counter key={item.key} item={item} />
+          ))}
+        </section>
 
-          {/* Screens Section */}
-          <div className="mb-6">
-            <h2 className="text-lg font-semibold mb-3 text-center">Screens</h2>
-            {[
-              ['EXTERIOR_HALF_SCREEN', 'Half Screens'],
-              ['EXTERIOR_HALF_SCREEN_INTERIOR', 'Half Screens', 'Remove from inside'],
-              ['WHOLE_INTERIOR_SCREEN', 'Full Screens', 'Interior or exterior'],
-              ['SOLAR_SCREEN', 'Solar Screens'],
-              ['SCREW_SOLAR_SCREEN', 'Screw-On Solar Screens'],
-              ['UPPER_WOODEN_SCREEN', 'Upper Wooden Screens'],
-              ['LOWER_WOODEN_SCREEN', 'Lower Wooden Screens'],
-            ].map(([key, label, desc]) => (
-              <CounterItem
-                key={key}
-                label={label}
-                itemKey={key}
-                description={desc}
-              />
-            ))}
-          </div>
+        <section style={{ marginBottom: '32px' }}>
+          <h2
+            style={{
+              fontSize: '20px',
+              marginBottom: '16px',
+              textAlign: 'center',
+            }}
+          >
+            Screens
+          </h2>
+          {ITEMS_CONFIG.screens.map((item) => (
+            <Counter key={item.key} item={item} />
+          ))}
+        </section>
 
-          {/* Gutters Section */}
-          <div className="mb-6">
-            <h2 className="text-lg font-semibold mb-3 text-center">Gutters</h2>
-            {[
-              ['FIRST_STORY_GUTTER', 'First Story Gutters'],
-              ['SECOND_STORY_GUTTER', 'Second Story Gutters'],
-            ].map(([key, label]) => (
-              <CounterItem
-                key={key}
-                label={label}
-                itemKey={key}
-                increment={10}
-                description={'Linear feet rounded to nearest ten'}
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* Fixed bottom section for totals and actions */}
-        <div className="fixed bottom-0 left-0 right-0 bg-white shadow-lg border-t">
-          <div className="p-4 space-y-2">
-            <div className="flex justify-between text-lg font-bold">
-              <span>In/Out:</span>
-              <span>${totals.inOut.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between text-lg font-bold">
-              <span>Out Only:</span>
-              <span>${totals.outOnly.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between text-lg font-bold">
-              <span>Gutters:</span>
-              <span>${totals.gutters.toFixed(2)}</span>
-            </div>
-
-            <div className="flex space-x-2 pt-2 pb-2">
-              <Button
-                onClick={resetAll}
-                variant="destructive"
-                className="flex-1 h-12"
-              >
-                <RotateCcw className="mr-2 h-5 w-5" />
-                Reset All
-              </Button>
-              <Button
-                onClick={() => copyToClipboard(generateQuoteText())}
-                className="flex-1 h-12"
-              >
-                <ClipboardCopy className="mr-2 h-5 w-4" />
-                Copy Bid
-              </Button>
-            </div>
-          </div>
-        </div>
+        <section style={{ marginBottom: '32px' }}>
+          <h2
+            style={{
+              fontSize: '20px',
+              marginBottom: '16px',
+              textAlign: 'center',
+            }}
+          >
+            Gutters
+          </h2>
+          {ITEMS_CONFIG.gutters.map((item) => (
+            <Counter key={item.key} item={item} />
+          ))}
+        </section>
       </div>
-      <Toaster />
-    </>
+
+      <footer
+        style={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          backgroundColor: '#1e1e1e',
+          borderTop: '1px solid #444',
+          padding: '16px',
+        }}
+      >
+        <div style={{ maxWidth: '600px', margin: '0 auto' }}>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '8px',
+              marginBottom: '16px',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                padding: '8px',
+                borderBottom: '1px solid #444',
+              }}
+            >
+              <span>In/Out:</span>
+              <span style={{ fontWeight: 'bold' }}>
+                ${totals.inOut.toFixed(2)}
+              </span>
+            </div>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                padding: '8px',
+                borderBottom: '1px solid #444',
+              }}
+            >
+              <span>Out Only:</span>
+              <span style={{ fontWeight: 'bold' }}>
+                ${totals.outOnly.toFixed(2)}
+              </span>
+            </div>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                padding: '8px',
+              }}
+            >
+              <span>Gutters:</span>
+              <span style={{ fontWeight: 'bold' }}>
+                ${totals.gutters.toFixed(2)}
+              </span>
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <button
+              onClick={resetAll}
+              style={{
+                ...actionButtonStyle,
+                flex: 1,
+                backgroundColor: '#d32f2f',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+              }}
+              aria-label="Reset all"
+            >
+              <RotateCcw size={18} />
+              Reset All
+            </button>
+            <button
+              onClick={copyQuote}
+              style={{
+                ...actionButtonStyle,
+                flex: 1,
+                backgroundColor: '#2196f3',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+              }}
+              aria-label="Copy bid"
+            >
+              <Copy size={18} />
+              Copy Bid
+            </button>
+          </div>
+        </div>
+      </footer>
+    </div>
   );
+};
+
+const buttonStyle = {
+  backgroundColor: '#333',
+  color: '#fff',
+  border: '1px solid #555',
+  borderRadius: '6px',
+  padding: '8px 16px',
+  fontSize: '16px',
+  cursor: 'pointer',
+  transition: 'background-color 0.2s',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+};
+
+const actionButtonStyle = {
+  backgroundColor: '#2196f3',
+  color: '#fff',
+  border: 'none',
+  borderRadius: '8px',
+  padding: '14px 24px',
+  fontSize: '16px',
+  fontWeight: 'bold',
+  cursor: 'pointer',
+  transition: 'opacity 0.2s',
 };
 
 export default WindowQuoteCalculator;
