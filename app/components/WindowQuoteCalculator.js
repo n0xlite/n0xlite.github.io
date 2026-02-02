@@ -1,7 +1,7 @@
 // WindowQuoteCalculator.js
 'use client';
 import React, { useState, useMemo } from 'react';
-import { RotateCcw, Copy } from 'lucide-react';
+import { RotateCcw, Copy, Plus, Minus } from 'lucide-react';
 
 const PRICES = {
   XL_UPPER_WINDOW: 23.64,
@@ -130,11 +130,11 @@ const WindowQuoteCalculator = () => {
     const lines = [];
 
     Object.entries(ITEMS_CONFIG).forEach(([section, items]) => {
-      items.forEach(({ key, label, desc }) => {
+      items.forEach(({ key, label }) => {
         if (quantities[key] > 0) {
           const isGutter = section === 'gutters';
           const value = isGutter ? `${quantities[key]} ft` : quantities[key];
-          const fullLabel = desc ? `${label} (${desc})` : label;
+          const fullLabel = label + (isGutter ? ' Gutter' : '');
           lines.push(`${fullLabel}: ${value}`);
         }
       });
@@ -152,9 +152,25 @@ const WindowQuoteCalculator = () => {
 
   const copyQuote = async () => {
     try {
-      await navigator.clipboard.writeText(generateQuote());
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(generateQuote());
+      } else {
+        // Fallback for older browsers / contexts
+        const textarea = document.createElement('textarea');
+        textarea.value = generateQuote();
+        textarea.setAttribute('readonly', '');
+        textarea.style.position = 'absolute';
+        textarea.style.left = '-9999px';
+        document.body.appendChild(textarea);
+        textarea.select();
+        textarea.setSelectionRange(0, textarea.value.length);
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+      }
+
       showToast('Bid copied to clipboard');
-    } catch {
+    } catch (err) {
+      console.error('Clipboard error:', err);
       showToast('Could not copy to clipboard');
     }
   };
@@ -193,55 +209,79 @@ const WindowQuoteCalculator = () => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: '8px',
+            position: 'relative',
           }}
         >
-          {showTens && (
-            <button
-              onClick={() => updateQty(key, -10)}
-              style={buttonStyle}
-              aria-label="Decrease by 10"
-            >
-              --
-            </button>
-          )}
-          <button
-            onClick={() => updateQty(key, -increment)}
-            style={buttonStyle}
-            aria-label="Decrease"
-          >
-            -
-          </button>
-          <span
+          <div
             style={{
-              fontSize: '20px',
-              fontWeight: 'bold',
-              minWidth: '40px',
-              textAlign: 'center',
-              color: '#fff',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
             }}
           >
-            {quantities[key]}
-          </span>
-          <button
-            onClick={() => updateQty(key, increment)}
-            style={buttonStyle}
-            aria-label="Increase"
-          >
-            +
-          </button>
-          {showTens && (
+            {showTens && (
+              <button
+                onClick={() => updateQty(key, -10)}
+                style={buttonStyle}
+                aria-label="Decrease by 10"
+              >
+                <Minus size={14} />
+                <Minus size={14} />
+              </button>
+            )}
             <button
-              onClick={() => updateQty(key, 10)}
+              onClick={() => updateQty(key, -increment)}
               style={buttonStyle}
-              aria-label="Increase by 10"
+              aria-label="Decrease"
             >
-              ++
+              <Minus size={18} />
             </button>
-          )}
+            <span
+              style={{
+                fontSize: '20px',
+                fontWeight: 'bold',
+                minWidth: '40px',
+                textAlign: 'center',
+                color: '#fff',
+              }}
+            >
+              {quantities[key]}
+            </span>
+            <button
+              onClick={() => updateQty(key, increment)}
+              style={buttonStyle}
+              aria-label="Increase"
+            >
+              <Plus size={18} />
+            </button>
+            {showTens && (
+              <button
+                onClick={() => updateQty(key, 10)}
+                style={buttonStyle}
+                aria-label="Increase by 10"
+              >
+                <Plus size={14} />
+                <Plus size={14} />
+              </button>
+            )}
+          </div>
           <button
             onClick={() => resetItem(key)}
-            style={{ ...buttonStyle, marginLeft: '8px' }}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: '#999',
+              cursor: 'pointer',
+              padding: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'color 0.2s',
+              position: 'absolute',
+              right: '8px',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = '#fff')}
+            onMouseLeave={(e) => (e.currentTarget.style.color = '#999')}
             aria-label="Reset item"
           >
             <RotateCcw size={16} />
@@ -273,6 +313,7 @@ const WindowQuoteCalculator = () => {
             borderRadius: '8px',
             zIndex: 1000,
             border: '1px solid #444',
+            textAlign: 'center',
           }}
         >
           {toast}
@@ -294,7 +335,7 @@ const WindowQuoteCalculator = () => {
           }}
         >
           <img
-            src="/logo_white.png"
+            src="/logo_blue.png"
             alt="Company Logo"
             style={{
               maxWidth: '180px',
@@ -429,7 +470,7 @@ const WindowQuoteCalculator = () => {
               style={{
                 ...actionButtonStyle,
                 flex: 1,
-                backgroundColor: '#d32f2f',
+                backgroundColor: '#333',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -445,7 +486,7 @@ const WindowQuoteCalculator = () => {
               style={{
                 ...actionButtonStyle,
                 flex: 1,
-                backgroundColor: '#2196f3',
+                backgroundColor: '#333',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -468,19 +509,21 @@ const buttonStyle = {
   color: '#fff',
   border: '1px solid #555',
   borderRadius: '6px',
-  padding: '8px 16px',
+  padding: '8px 12px',
   fontSize: '16px',
   cursor: 'pointer',
   transition: 'background-color 0.2s',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
+  gap: '2px',
+  minHeight: '36px',
 };
 
 const actionButtonStyle = {
-  backgroundColor: '#2196f3',
+  backgroundColor: '#333',
   color: '#fff',
-  border: 'none',
+  border: '1px solid #555',
   borderRadius: '8px',
   padding: '14px 24px',
   fontSize: '16px',
