@@ -7,16 +7,16 @@ import { Toaster } from '@/components/ui/toaster';
 import { useToast } from '@/hooks/use-toast';
 
 const prices = {
-  XL_UPPER: 23.64,
-  L_UPPER: 16.06,
-  M_UPPER: 8.59,
-  S_UPPER: 6.85,
-  XS_UPPER: 3.56,
-  XL_LOWER: 17.98,
-  L_LOWER: 11.43,
-  M_LOWER: 6.49,
-  S_LOWER: 4.31,
-  XS_LOWER: 2.54,
+  XL_UPPER_WINDOW: 23.64,
+  L_UPPER_WINDOW: 16.06,
+  M_UPPER_WINDOW: 8.59,
+  S_UPPER_WINDOW: 6.85,
+  XS_UPPER_WINDOW: 3.56,
+  XL_LOWER_WINDOW: 17.98,
+  L_LOWER_WINDOW: 11.43,
+  M_LOWER_WINDOW: 6.49,
+  S_LOWER_WINDOW: 4.31,
+  XS_LOWER_WINDOW: 2.54,
   EXTERIOR_HALF_SCREEN: 2.72,
   WHOLE_INTERIOR_SCREEN: 3.12,
   EXTERIOR_HALF_SCREEN_INTERIOR: 4.00,
@@ -33,8 +33,8 @@ const WindowQuoteCalculator = () => {
   const { toast } = useToast();
 
   const [quantities, setQuantities] = useState({
-    XL_UPPER: 0, L_UPPER: 0, M_UPPER: 0, S_UPPER: 0, XS_UPPER: 0,
-    XL_LOWER: 0, L_LOWER: 0, M_LOWER: 0, S_LOWER: 0, XS_LOWER: 0,
+    XL_UPPER_WINDOW: 0, L_UPPER_WINDOW: 0, M_UPPER_WINDOW: 0, S_UPPER_WINDOW: 0, XS_UPPER_WINDOW: 0,
+    XL_LOWER_WINDOW: 0, L_LOWER_WINDOW: 0, M_LOWER_WINDOW: 0, S_LOWER_WINDOW: 0, XS_LOWER_WINDOW: 0,
     EXTERIOR_HALF_SCREEN: 0, WHOLE_INTERIOR_SCREEN: 0,
     EXTERIOR_HALF_SCREEN_INTERIOR: 0, SOLAR_SCREEN: 0,
     SCREW_SOLAR_SCREEN: 0, UPPER_WOODEN_SCREEN: 0,
@@ -51,8 +51,9 @@ const WindowQuoteCalculator = () => {
   // TODO Note functionality for PDF generation
   // const [notes, setNotes] = useState('');
 
-  const isWindow = (key) => key.includes('_UPPER') || key.includes('_LOWER');
-  const isScreen = (key) => !key.includes('_UPPER') && !key.includes('_LOWER') && !key.includes('GUTTER');
+  const isWindow = (key) => key.includes('WINDOW');
+  const isScreen = (key) => key.includes('SCREEN');
+  const isGutter = (key) => key.includes('GUTTER');
 
   const updateQuantity = (item, increment) => {
     setQuantities(prev => ({
@@ -70,13 +71,12 @@ const WindowQuoteCalculator = () => {
       acc[key] = 0;
       return acc;
     }, {}));
-    setNotes('');
   };
 
   const generateQuoteText = () => {
     const sections = {
-      'Upper Windows': ['XL_UPPER', 'L_UPPER', 'M_UPPER', 'S_UPPER', 'XS_UPPER'],
-      'Lower Windows': ['XL_LOWER', 'L_LOWER', 'M_LOWER', 'S_LOWER', 'XS_LOWER'],
+      'Upper Windows': ['XL_UPPER_WINDOW', 'L_UPPER_WINDOW', 'M_UPPER_WINDOW', 'S_UPPER_WINDOW', 'XS_UPPER_WINDOW'],
+      'Lower Windows': ['XL_LOWER_WINDOW', 'L_LOWER_WINDOW', 'M_LOWER_WINDOW', 'S_LOWER_WINDOW', 'XS_LOWER_WINDOW'],
       'Screens': [
         'EXTERIOR_HALF_SCREEN',
         'WHOLE_INTERIOR_SCREEN',
@@ -90,16 +90,16 @@ const WindowQuoteCalculator = () => {
     };
 
     const labels = {
-      XL_UPPER: 'XL Upper',
-      L_UPPER: 'L Upper',
-      M_UPPER: 'M Upper',
-      S_UPPER: 'S Upper',
-      XS_UPPER: 'XS Upper',
-      XL_LOWER: 'XL Lower',
-      L_LOWER: 'L Lower',
-      M_LOWER: 'M Lower',
-      S_LOWER: 'S Lower',
-      XS_LOWER: 'XS Lower',
+      XL_UPPER_WINDOW: 'XL Upper',
+      L_UPPER_WINDOW: 'L Upper',
+      M_UPPER_WINDOW: 'M Upper',
+      S_UPPER_WINDOW: 'S Upper',
+      XS_UPPER_WINDOW: 'XS Upper',
+      XL_LOWER_WINDOW: 'XL Lower',
+      L_LOWER_WINDOW: 'L Lower',
+      M_LOWER_WINDOW: 'M Lower',
+      S_LOWER_WINDOW: 'S Lower',
+      XS_LOWER_WINDOW: 'XS Lower',
       EXTERIOR_HALF_SCREEN: 'Half Screens',
       WHOLE_INTERIOR_SCREEN: 'Whole/Interior Screens',
       EXTERIOR_HALF_SCREEN_INTERIOR: 'Half Screens (remove from interior)',
@@ -137,15 +137,15 @@ const WindowQuoteCalculator = () => {
     return quoteText;
   };
 
-  const copyToClipboard = async (quoteText) => {
+  const copyToClipboard = async (text) => {
     // Prefer the async Clipboard API when available
     try {
       if (navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(quoteText);
+        await navigator.clipboard.writeText(text);
       } else {
         // Fallback for older browsers / contexts
         const textarea = document.createElement('textarea');
-        textarea.value = quoteText;
+        textarea.value = text;
         textarea.setAttribute('readonly', '');
         textarea.style.position = 'absolute';
         textarea.style.left = '-9999px';
@@ -182,9 +182,10 @@ const WindowQuoteCalculator = () => {
       return acc;
     }, 0);
 
-    const guttersTotal =
-      (quantities.FIRST_STORY_GUTTER * prices.FIRST_STORY_GUTTER) +
-      (quantities.SECOND_STORY_GUTTER * prices.SECOND_STORY_GUTTER);
+    const guttersTotal = Object.keys(quantities).reduce((acc, key) => {
+      if (isGutter(key)) return acc + (quantities[key] * prices[key]);
+      return acc;
+    }, 0);
 
     const inOutTotal = windowsTotal + screensTotal;
     const outOnlyTotal = (windowsTotal * 0.67) + screensTotal;
@@ -266,18 +267,18 @@ const WindowQuoteCalculator = () => {
           <div className="mb-6">
             <h2 className="text-lg font-semibold mb-3 text-center">Upper Windows</h2>
             {[
-              ['XL_UPPER', 'Extra Large Upper Pane', '> 27 sqft'],
-              ['L_UPPER', 'Large Upper Pane', '13 - 26 sqft'],
-              ['M_UPPER', 'Medium Upper Pane', '4 - 12 sqft'],
-              ['S_UPPER', 'Small Upper Pane', '1 - 3 sqft'],
-              ['XS_UPPER', 'Extra Small Upper Pane', '< 1 sqft']
+              ['XL_UPPER_WINDOW', 'Extra Large Upper Pane', '> 27 sqft'],
+              ['L_UPPER_WINDOW', 'Large Upper Pane', '13 - 26 sqft'],
+              ['M_UPPER_WINDOW', 'Medium Upper Pane', '4 - 12 sqft'],
+              ['S_UPPER_WINDOW', 'Small Upper Pane', '1 - 3 sqft'],
+              ['XS_UPPER_WINDOW', 'Extra Small Upper Pane', '< 1 sqft']
             ].map(([key, label, desc]) => (
               <CounterItem
                 key={key}
                 label={label}
                 itemKey={key}
                 description={desc}
-                showTenButtons={key === 'XS_UPPER'}
+                showTenButtons={key === 'XS_UPPER_WINDOW'}
               />
             ))}
           </div>
@@ -285,18 +286,18 @@ const WindowQuoteCalculator = () => {
           <div className="mb-6">
             <h2 className="text-lg font-semibold mb-3 text-center">Lower Windows</h2>
             {[
-              ['XL_LOWER', 'Extra Large Lower Pane', '> 27 sqft'],
-              ['L_LOWER', 'Large Lower Pane', '13 - 26 sqft'],
-              ['M_LOWER', 'Medium Lower Pane', '4 - 12 sqft'],
-              ['S_LOWER', 'Small Lower Pane', '1 - 3 sqft'],
-              ['XS_LOWER', 'Extra Small Lower Pane', '< 1 sqft']
+              ['XL_LOWER_WINDOW', 'Extra Large Lower Pane', '> 27 sqft'],
+              ['L_LOWER_WINDOW', 'Large Lower Pane', '13 - 26 sqft'],
+              ['M_LOWER_WINDOW', 'Medium Lower Pane', '4 - 12 sqft'],
+              ['S_LOWER_WINDOW', 'Small Lower Pane', '1 - 3 sqft'],
+              ['XS_LOWER_WINDOW', 'Extra Small Lower Pane', '< 1 sqft']
             ].map(([key, label, desc]) => (
               <CounterItem
                 key={key}
                 label={label}
                 itemKey={key}
                 description={desc}
-                showTenButtons={key === 'XS_LOWER'}
+                showTenButtons={key === 'XS_LOWER_WINDOW'}
               />
             ))}
           </div>
