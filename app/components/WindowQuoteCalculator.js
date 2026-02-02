@@ -137,36 +137,35 @@ const WindowQuoteCalculator = () => {
     return quoteText;
   };
 
-  const copyToClipboard = async (text) => {
+  const copyToClipboard = async (quoteText) => {
+    // Prefer the async Clipboard API when available
     try {
-      // Handle Mobile
-      const textarea = document.createElement('textarea');
-      textarea.value = text;
-      textarea.setAttribute('readonly', '');
-      textarea.style.position = 'absolute';
-      textarea.style.left = '-9999px';
-      document.body.appendChild(textarea);
-
-      // Handle iOS
-      const range = document.createRange();
-      range.selectNodeContents(textarea);
-      const selection = window.getSelection();
-      selection.removeAllRanges();
-      selection.addRange(range);
-      textarea.setSelectionRange(0, 999999);
-      document.execCommand('copy');
-      document.body.removeChild(textarea);
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(quoteText);
+      } else {
+        // Fallback for older browsers / contexts
+        const textarea = document.createElement('textarea');
+        textarea.value = quoteText;
+        textarea.setAttribute('readonly', '');
+        textarea.style.position = 'absolute';
+        textarea.style.left = '-9999px';
+        document.body.appendChild(textarea);
+        textarea.select();
+        textarea.setSelectionRange(0, textarea.value.length);
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+      }
 
       toast({
-        title: "Success",
-        description: "Bid copied to clipboard",
+        title: 'Success',
+        description: 'Bid copied to clipboard',
       });
     } catch (err) {
-      console.error("Oops!", err)
+      console.error('Clipboard error:', err);
       toast({
-        title: "Failed",
-        description: "Could not copy to clipboard",
-        variant: "destructive",
+        title: 'Failed',
+        description: 'Could not copy to clipboard',
+        variant: 'destructive',
       });
     }
   };
